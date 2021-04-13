@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pkmnrec_app/screens/home_screen.dart';
 import 'package:pkmnrec_app/screens/splash_screen.dart';
+import 'package:pkmnrec_app/theme.dart';
 
 void main() {
   runApp(
@@ -14,9 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: myTheme,
       initialRoute: 'splash',
       routes: {
         'splash': (_) => SplashScreen(),
