@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pkmnrec_app/providers.dart';
 import 'package:pkmnrec_app/services/shell.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pkmnrec_app/widgets/project_area.dart';
 import 'package:pkmnrec_app/widgets/side_panel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 200,
             child: SidePanel(),
           ),
+          VerticalDivider(),
           Expanded(
             child: WorkArea(),
           ),
@@ -62,37 +64,54 @@ class _WorkAreaState extends State<WorkArea> {
               projectName,
               style: TextStyle(fontSize: 50),
             ),
-            Text('Current Device: ' + deviceName),
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(projectName),
-                    TextButton(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text('Connect Device'),
-                      ),
-                      onPressed: () async {},
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                    ),
-                    TextButton(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text('Start Cam'),
-                      ),
-                      onPressed: () async {},
-                    ),
-                  ],
-                ),
+            TextButton(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                    'Current Device - ${deviceName.isEmpty ? "none" : deviceName}'),
               ),
+              onPressed: _displayDeviceSelectDialog,
+            ),
+            Divider(),
+            Expanded(
+              child: ProjectArea(projectShell),
             ),
           ],
         ),
       );
     });
+  }
+
+  Future<void> _displayDeviceSelectDialog() async {
+    List<String> devices = await projectShell.getDevices();
+    context.read(currentDeviceProvider).state = '';
+
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Select a device'),
+            content: devices.isEmpty
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Text('No devices found')])
+                : SizedBox(
+                    width: 300,
+                    height: 100,
+                    child: ListView.builder(
+                        itemCount: devices.length,
+                        itemBuilder: (_, i) {
+                          return TextButton(
+                            onPressed: () {
+                              context.read(currentDeviceProvider).state =
+                                  devices[i];
+                              Navigator.pop(context);
+                            },
+                            child: Text(devices[i]),
+                          );
+                        }),
+                  ),
+          );
+        });
   }
 }

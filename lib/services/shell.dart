@@ -28,10 +28,13 @@ Future<bool> checkDependencies() async {
 
 class ProjectShell {
   final shell.Shell _shell;
-  ProjectShell(this._shell);
+  final Directory _dir;
+
+  ProjectShell(this._shell) : _dir = Directory.current;
   ProjectShell.fromName(String projectName)
       : _shell = shell.Shell(
-            workingDirectory: p.join(mainDirectory.absolute.path, projectName));
+            workingDirectory: p.join(mainDirectory.absolute.path, projectName)),
+        _dir = Directory(p.join(mainDirectory.absolute.path, projectName));
 
   Future<List<String>> getDevices() async {
     final r = (await _shell.run('adb devices'))[0].stdout as String;
@@ -43,7 +46,21 @@ class ProjectShell {
         devices.add(deviceEntry[0]);
       }
     }
-
     return devices;
+  }
+
+  bool _isValidProjectFile(String path) {
+    const exts = {'.mp3', '.mp4'};
+    return exts.contains(p.extension(path));
+  }
+
+  Future<List<FileSystemEntity>> getProjectFiles() async {
+    return (_dir.list())
+        .where((element) => _isValidProjectFile(element.path))
+        .toList();
+  }
+
+  void openFile(FileSystemEntity file) {
+    _shell.run('open ${file.absolute.path}');
   }
 }

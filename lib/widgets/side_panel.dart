@@ -31,7 +31,7 @@ class _SidePanelState extends State<SidePanel> {
       }
     });
     projects.sort();
-
+    context.read(currentProjectProvider).state = '';
     setState(() {
       state = SidePanelState.ready;
     });
@@ -71,7 +71,7 @@ class _SidePanelState extends State<SidePanel> {
               projects.isEmpty
                   ? Text("No Projects")
                   : Expanded(
-                      child: ListView.separated(
+                      child: ListView.builder(
                         itemCount: projects.length,
                         itemBuilder: (_, i) {
                           return TextButton(
@@ -95,9 +95,9 @@ class _SidePanelState extends State<SidePanel> {
                             ),
                           );
                         },
-                        separatorBuilder: (_, i) {
-                          return Divider();
-                        },
+                        // separatorBuilder: (_, i) {
+                        //   return Divider();
+                        // },
                       ),
                     ),
             ],
@@ -115,7 +115,6 @@ class _SidePanelState extends State<SidePanel> {
             title: Text('Project Name'),
             content: TextField(
               controller: _textFieldController,
-              decoration: InputDecoration(hintText: "Must be unique."),
             ),
             actions: <Widget>[
               TextButton(
