@@ -5,35 +5,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pkmnrec_app/providers.dart';
 import 'package:pkmnrec_app/services/shell.dart';
 import 'package:path/path.dart' as p;
+import 'package:pkmnrec_app/widgets/make_project.dart';
 
-enum ProjectAreaState { none, loading, empty, complete }
+enum ProjectLoaderState { none, loading, empty, complete }
 
-class ProjectArea extends StatefulWidget {
+class ProjectLoader extends StatefulWidget {
   final ProjectShell projectShell;
 
-  ProjectArea(this.projectShell);
+  ProjectLoader(this.projectShell);
 
   @override
-  _ProjectAreaState createState() => _ProjectAreaState();
+  _ProjectLoaderState createState() => _ProjectLoaderState();
 }
 
-class _ProjectAreaState extends State<ProjectArea> {
-  var state = ProjectAreaState.loading;
+class _ProjectLoaderState extends State<ProjectLoader> {
+  var state = ProjectLoaderState.loading;
   var lastProjectName = '';
 
   var projectFiles = <FileSystemEntity>[];
 
   void loadProject() async {
-    state = ProjectAreaState.loading;
+    state = ProjectLoaderState.loading;
 
     projectFiles = await widget.projectShell.getProjectFiles();
     if (projectFiles.isEmpty) {
       setState(() {
-        state = ProjectAreaState.empty;
+        state = ProjectLoaderState.empty;
       });
     } else {
       setState(() {
-        state = ProjectAreaState.complete;
+        state = ProjectLoaderState.complete;
       });
     }
   }
@@ -49,14 +50,13 @@ class _ProjectAreaState extends State<ProjectArea> {
       }
 
       switch (state) {
-        case ProjectAreaState.none:
+        case ProjectLoaderState.none:
           return Container();
-        case ProjectAreaState.loading:
+        case ProjectLoaderState.loading:
           return Center(child: CircularProgressIndicator());
-        case ProjectAreaState.empty:
-          // TODO: Handle this case.
-          break;
-        case ProjectAreaState.complete:
+        case ProjectLoaderState.empty:
+          return MakeProject(widget.projectShell);
+        case ProjectLoaderState.complete:
           return ListView.builder(
               itemCount: projectFiles.length,
               itemBuilder: (_, i) {
@@ -80,7 +80,6 @@ class _ProjectAreaState extends State<ProjectArea> {
                 );
               });
       }
-      return Text('unimplemented');
     });
   }
 }

@@ -51,57 +51,65 @@ class _SidePanelState extends State<SidePanel> {
       case SidePanelState.loading:
         return Center(child: CircularProgressIndicator());
       case SidePanelState.ready:
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Padding(
+        return Consumer(
+          builder: (_, watch, __) {
+            final recorderState = watch(recorderStateProvider).state;
+
+            return AbsorbPointer(
+              absorbing: recorderState == RecorderState.recording,
+              child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: _displayProjectCreationDialog,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(Icons.add),
-                      Text("New Project"),
-                    ],
-                  ),
-                ),
-              ),
-              projects.isEmpty
-                  ? Text("No Projects")
-                  : Expanded(
-                      child: ListView.builder(
-                        itemCount: projects.length,
-                        itemBuilder: (_, i) {
-                          return TextButton(
-                            onPressed: () {
-                              context.read(currentProjectProvider).state =
-                                  projects[i];
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(projects[i]),
-                                IconButton(
-                                  iconSize: 12,
-                                  icon: Icon(Icons.edit),
-                                  color: Colors.grey,
-                                  onPressed: () {
-                                    _displayProjectEditDialog(projects[i]);
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        // separatorBuilder: (_, i) {
-                        //   return Divider();
-                        // },
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        onPressed: _displayProjectCreationDialog,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Icon(Icons.add),
+                            Text("New Project"),
+                          ],
+                        ),
                       ),
                     ),
-            ],
-          ),
+                    projects.isEmpty
+                        ? Text("No Projects")
+                        : Expanded(
+                            child: ListView.builder(
+                              itemCount: projects.length,
+                              itemBuilder: (_, i) {
+                                return TextButton(
+                                  onPressed: () {
+                                    context.read(currentProjectProvider).state =
+                                        projects[i];
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(projects[i]),
+                                      IconButton(
+                                        iconSize: 12,
+                                        icon: Icon(Icons.edit),
+                                        color: Colors.grey,
+                                        onPressed: () {
+                                          _displayProjectEditDialog(
+                                              projects[i]);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
     }
   }
