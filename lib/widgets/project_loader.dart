@@ -5,14 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pkmnrec_app/providers.dart';
 import 'package:pkmnrec_app/services/shell.dart';
 import 'package:path/path.dart' as p;
-import 'package:pkmnrec_app/widgets/make_project.dart';
+import 'package:pkmnrec_app/widgets/project_creator.dart';
 
 enum ProjectLoaderState { none, loading, empty, complete }
 
 class ProjectLoader extends StatefulWidget {
-  final ProjectShell projectShell;
-
-  ProjectLoader(this.projectShell);
+  ProjectLoader();
 
   @override
   _ProjectLoaderState createState() => _ProjectLoaderState();
@@ -24,10 +22,10 @@ class _ProjectLoaderState extends State<ProjectLoader> {
 
   var projectFiles = <FileSystemEntity>[];
 
-  void loadProject() async {
+  void loadProject(ProjectShell projectShell) async {
     state = ProjectLoaderState.loading;
 
-    projectFiles = await widget.projectShell.getProjectFiles();
+    projectFiles = await projectShell.getProjectFiles();
     if (projectFiles.isEmpty) {
       setState(() {
         state = ProjectLoaderState.empty;
@@ -43,9 +41,11 @@ class _ProjectLoaderState extends State<ProjectLoader> {
   Widget build(BuildContext context) {
     return Consumer(builder: (_, watch, __) {
       final projectName = watch(currentProjectProvider).state;
+      final projectShell = watch(projectShellProvider).state;
+
       if (projectName != lastProjectName) {
         // Project was changed, restart.
-        loadProject();
+        loadProject(projectShell);
         lastProjectName = projectName;
       }
 
@@ -55,7 +55,7 @@ class _ProjectLoaderState extends State<ProjectLoader> {
         case ProjectLoaderState.loading:
           return Center(child: CircularProgressIndicator());
         case ProjectLoaderState.empty:
-          return MakeProject(widget.projectShell);
+          return ProjectCreator();
         case ProjectLoaderState.complete:
           return ListView.builder(
               itemCount: projectFiles.length,
@@ -64,7 +64,7 @@ class _ProjectLoaderState extends State<ProjectLoader> {
                   padding: const EdgeInsets.all(8.0),
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      widget.projectShell.openFile(projectFiles[i]);
+                      projectShell.openFile(projectFiles[i]);
                     },
                     icon: p.extension(projectFiles[i].path) == '.mp3'
                         ? Icon(Icons.music_note)

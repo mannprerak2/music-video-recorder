@@ -30,83 +30,70 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class WorkArea extends StatefulWidget {
-  const WorkArea({
-    Key? key,
-  }) : super(key: key);
-
+class WorkArea extends ConsumerWidget {
   @override
-  _WorkAreaState createState() => _WorkAreaState();
-}
+  Widget build(context, watch) {
+    final projectName = watch(currentProjectProvider).state;
+    final projectShell = watch(projectShellProvider).state;
 
-class _WorkAreaState extends State<WorkArea> {
-  var projectShell = ProjectShell(rootShell);
+    final deviceName = watch(currentDeviceProvider).state;
+    final recorderState = watch(recorderStateProvider).state;
+    if (projectName.isEmpty) {
+      return Center(
+        child: Text('No Project Selected.'),
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(builder: (_, watch, __) {
-      final projectName = watch(currentProjectProvider).state;
-
-      projectShell = ProjectShell.fromName(projectName);
-      return Consumer(builder: (_, watch, __) {
-        final deviceName = watch(currentDeviceProvider).state;
-        final recorderState = watch(recorderStateProvider).state;
-        if (projectName.isEmpty) {
-          return Center(
-            child: Text('No Project Selected.'),
-          );
-        }
-
-        return Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                projectName,
-                style: TextStyle(fontSize: 50),
-              ),
-              AbsorbPointer(
-                absorbing: recorderState == RecorderState.recording,
-                child: Row(
-                  children: [
-                    deviceName.isEmpty
-                        ? ElevatedButton(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('No device connected'),
-                            ),
-                            onPressed: _displayDeviceSelectDialog,
-                          )
-                        : TextButton(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Current Device - $deviceName'),
-                            ),
-                            onPressed: _displayDeviceSelectDialog,
-                          ),
-                    if (watch(recorderStateProvider).state ==
-                        RecorderState.ready)
-                      OutlinedButton(
-                          onPressed: () {
-                            context.read(recorderStateProvider).state =
-                                RecorderState.none;
-                          },
-                          child: Text('Reset Camera State')),
-                  ],
-                ),
-              ),
-              Divider(),
-              Expanded(
-                child: ProjectLoader(projectShell),
-              ),
-            ],
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            projectName,
+            style: TextStyle(fontSize: 50),
           ),
-        );
-      });
-    });
+          AbsorbPointer(
+            absorbing: recorderState == RecorderState.recording,
+            child: Row(
+              children: [
+                deviceName.isEmpty
+                    ? ElevatedButton(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text('No device connected'),
+                        ),
+                        onPressed: () =>
+                            _displayDeviceSelectDialog(context, projectShell),
+                      )
+                    : TextButton(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text('Current Device - $deviceName'),
+                        ),
+                        onPressed: () =>
+                            _displayDeviceSelectDialog(context, projectShell),
+                      ),
+                if (watch(recorderStateProvider).state == RecorderState.ready)
+                  OutlinedButton(
+                      onPressed: () {
+                        context.read(recorderStateProvider).state =
+                            RecorderState.none;
+                      },
+                      child: Text('Reset Camera State')),
+              ],
+            ),
+          ),
+          Divider(),
+          Expanded(
+            child: ProjectLoader(),
+          ),
+        ],
+      ),
+    );
   }
 
-  Future<void> _displayDeviceSelectDialog() async {
+  Future<void> _displayDeviceSelectDialog(
+      BuildContext context, ProjectShell projectShell) async {
     List<String> devices = await projectShell.getDevices();
     context.read(currentDeviceProvider).state = '';
 

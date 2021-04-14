@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pkmnrec_app/providers.dart';
-import 'package:pkmnrec_app/services/shell.dart';
 
-class MakeProject extends ConsumerWidget {
-  final ProjectShell _shell;
-  MakeProject(this._shell);
+class ProjectCreator extends ConsumerWidget {
+  ProjectCreator();
 
   @override
   Widget build(context, watch) {
     final recorderState = watch(recorderStateProvider).state;
     final device = watch(currentDeviceProvider).state;
+    final _shell = watch(projectShellProvider).state;
     switch (recorderState) {
       case RecorderState.none:
         return Center(
