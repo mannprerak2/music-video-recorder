@@ -9,17 +9,15 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   String? vdir;
   void init() async {
-    await initWorkingShell();
     // Check dependencies.
-    checkDependencies().then((value) {
-      if (value) {
-        Navigator.of(context).popAndPushNamed('home');
-      } else {
-        setState(() {
-          vdir = "Dependencies missing";
-        });
-      }
-    });
+    if (await checkDependencies()) {
+      await initWorkingShell();
+      Navigator.of(context).popAndPushNamed('home');
+    } else {
+      setState(() {
+        vdir = "Dependencies missing";
+      });
+    }
   }
 
   @override
