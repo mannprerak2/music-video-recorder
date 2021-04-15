@@ -2,9 +2,22 @@ import 'package:process_run/shell.dart' as shell;
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
-const ctrl_c = 3;
+const deps = ['rec', 'adb', 'ffmpeg'];
 
-late shell.Shell rootShell;
+const myEnv = {'PATH': '/usr/local/bin'};
+shell.Shell rootShell = shell.Shell(environment: myEnv);
+
+Future<bool> checkDependencies() async {
+  // Get path from user shell.
+
+  for (final s in deps) {
+    if (await shell.which(s, environment: myEnv) == null) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 final mainDirectory = Directory(p.join(shell.userHomePath, 'pkmn_recordings'));
 
@@ -13,34 +26,23 @@ Future<void> initWorkingShell() async {
     await mainDirectory.create();
   }
 
-  rootShell = shell.Shell(workingDirectory: mainDirectory.absolute.path);
+  rootShell = rootShell.clone(workingDirectory: mainDirectory.absolute.path);
   await rootShell.run('adb start-server');
 }
 
-Future<bool> checkDependencies() async {
-  const deps = ['rec', 'adb', 'ffmpeg'];
-  for (final s in deps) {
-    if (await shell.which(s) == null) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 class ProjectShell {
-  final shell.Shell _shell;
+  final shell.Shell mshell;
   final Directory _dir;
   String lastError = '';
 
-  ProjectShell(this._shell) : _dir = Directory.current;
+  ProjectShell(this.mshell) : _dir = Directory.current;
   ProjectShell.fromName(String projectName)
-      : _shell = shell.Shell(
+      : mshell = rootShell.clone(
             workingDirectory: p.join(mainDirectory.absolute.path, projectName)),
         _dir = Directory(p.join(mainDirectory.absolute.path, projectName));
 
   Future<List<String>> getDevices() async {
-    final r = (await _shell.run('adb devices'))[0].stdout as String;
+    final r = (await mshell.run('adb devices'))[0].stdout as String;
     final lines = r.split('\n');
     List<String> devices = [];
     for (var i = 1; i < lines.length; i++) {
@@ -64,7 +66,7 @@ class ProjectShell {
   }
 
   void openFile(FileSystemEntity file) {
-    _shell.run('open ${file.absolute.path}');
+    mshell.run('open "${file.absolute.path}"');
   }
 
   Future<bool> startCamera(String device) async {
@@ -76,7 +78,7 @@ class ProjectShell {
       //         .exitCode ==
       //     0;
 
-      return (await _shell.run(
+      return (await mshell.run(
                   'adb -s $device shell "am start -n com.oneplus.camera/.OPCameraActivity -a com.oneplus.camera.action.LAUNCH_IN_VIDEO" -W'))[0]
               .exitCode ==
           0;
@@ -87,16 +89,16 @@ class ProjectShell {
   }
 
   Future<void> _toggleCam(String device) async {
-    await _shell.run('adb -s $device shell "input keyevent 25"');
+    await mshell.run('adb -s $device shell "input keyevent 25"');
   }
 
   Future<bool> startRecording(String device) async {
     try {
       // Toggle Cam
+      curProcess = await Process.start('rec', ['audio.mp3'],
+          workingDirectory: mshell.path);
       await _toggleCam(device);
-
-      curProcess = await Process.start('rec', ['audio.mp3']);
-      print('started rec: $curProcess');
+      print('started rec');
     } catch (e) {
       lastError = (e as shell.ShellException).message;
       return false;

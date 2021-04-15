@@ -47,6 +47,10 @@ class ProjectCreator extends ConsumerWidget {
                     if (await _shell.startRecording(device)) {
                       context.read(recorderStateProvider).state =
                           RecorderState.recording;
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              'Unable to start recording: ${_shell.lastError}')));
                     }
                   },
                   style: ElevatedButton.styleFrom(

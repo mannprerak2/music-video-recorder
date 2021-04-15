@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pkmnrec_app/services/shell.dart';
+import 'package:process_run/shell.dart' as shell;
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -14,8 +15,12 @@ class _SplashScreenState extends State<SplashScreen> {
       await initWorkingShell();
       Navigator.of(context).popAndPushNamed('home');
     } else {
-      setState(() {
-        vdir = "Dependencies missing";
+      setState(() async {
+        vdir = '''Dependencies missing, Env: $myEnv
+        adb: ${shell.whichSync('adb')}
+        rec: ${shell.whichSync('rec')}
+        ffmpeg: ${shell.whichSync('ffmpeg')}
+        ''';
       });
     }
   }
