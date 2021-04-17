@@ -23,6 +23,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  macos_ui:
+    git:
+      url: https://github.com/GroovinChip/macos_ui.git
+      ref: a034bebe475131772a1d6ed2721984082139a1c4
 
 
   # The following adds the Cupertino Icons font to your application.

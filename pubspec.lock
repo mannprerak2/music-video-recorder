@@ -95,6 +95,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.1"
+  macos_ui:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: a034bebe475131772a1d6ed2721984082139a1c4
+      resolved-ref: a034bebe475131772a1d6ed2721984082139a1c4
+      url: "https://github.com/GroovinChip/macos_ui.git"
+    source: git
+    version: "0.0.3"
   matcher:
     dependency: transitive
     description:
@@ -149,6 +158,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.1"
+  split_view:
+    dependency: transitive
+    description:
+      path: "."
+      ref: null_safety
+      resolved-ref: cadac3bf5b0b94b1eeba11bedacce7a54b4e5f90
+      url: "https://github.com/GroovinChip/split_view.git"
+    source: git
+    version: "2.0.0+2"
   stack_trace:
     dependency: transitive
     description:

@@ -1,3 +1,4 @@
+import 'package:macos_ui/macos_ui.dart' as mui;
 import 'package:flutter/material.dart';
 import 'package:pkmnrec_app/services/shell.dart';
 import 'package:process_run/shell.dart' as shell;
@@ -33,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return mui.Scaffold(
       body: Container(
         child: Center(
           child: Column(

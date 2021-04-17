@@ -65,13 +65,7 @@ class _SidePanelState extends State<SidePanel> {
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
                         onPressed: _displayProjectCreationDialog,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Icon(Icons.add),
-                            Text("New Project"),
-                          ],
-                        ),
+                        child: Text("  New Project  "),
                       ),
                     ),
                     projects.isEmpty

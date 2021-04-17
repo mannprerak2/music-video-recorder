@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macos_ui/macos_ui.dart' as mui;
 import 'package:pkmnrec_app/providers.dart';
 import 'package:pkmnrec_app/services/shell.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,18 +14,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          SizedBox(
-            width: 200,
-            child: SidePanel(),
-          ),
-          VerticalDivider(),
-          Expanded(
-            child: WorkArea(),
-          ),
-        ],
+    return mui.Scaffold(
+      resizeBoundary: 170,
+      sidebar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SidePanel(),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: WorkArea(),
       ),
     );
   }

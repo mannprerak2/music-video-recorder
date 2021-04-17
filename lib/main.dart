@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pkmnrec_app/screens/home_screen.dart';
 import 'package:pkmnrec_app/screens/splash_screen.dart';
-import 'package:pkmnrec_app/theme.dart';
 
 void main() {
   runApp(
@@ -13,14 +13,15 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MacosApp(
+      // home: MacosApp(
       title: 'Flutter Demo',
-      theme: myTheme,
       initialRoute: 'splash',
       routes: {
         'splash': (_) => SplashScreen(),
         'home': (_) => HomeScreen(),
       },
+      // ),
     );
   }
 }
