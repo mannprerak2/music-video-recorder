@@ -1,5 +1,6 @@
 import 'package:macos_ui/macos_ui.dart' as mui;
 import 'package:flutter/material.dart';
+import 'package:pkmnrec_app/services/audio_permission.dart';
 import 'package:pkmnrec_app/services/shell.dart';
 import 'package:process_run/shell.dart' as shell;
 
@@ -11,6 +12,12 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   String? vdir;
   void init() async {
+    if (!await getAudioPermission()) {
+      setState(() async {
+        vdir = 'Audio Permission Missing.';
+      });
+      return;
+    }
     // Check dependencies.
     if (await checkDependencies()) {
       await initWorkingShell();
