@@ -54,6 +54,7 @@ class _SidePanelState extends State<SidePanel> {
         return Consumer(
           builder: (_, watch, __) {
             final recorderState = watch(recorderStateProvider).state;
+            final deviceName = watch(currentDeviceProvider).state;
 
             return AbsorbPointer(
               absorbing: recorderState == RecorderState.recording,
@@ -61,6 +62,33 @@ class _SidePanelState extends State<SidePanel> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
+                    deviceName.isEmpty
+                        ? ElevatedButton(
+                            style: ButtonStyle(
+                                backgroundColor: MaterialStateColor.resolveWith(
+                                    (states) => Colors.red)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Connect Device',
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            onPressed: () =>
+                                _displayDeviceSelectDialog(context),
+                          )
+                        : TextButton(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                '$deviceName',
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            onPressed: () =>
+                                _displayDeviceSelectDialog(context),
+                          ),
+                    Divider(),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
@@ -111,7 +139,7 @@ class _SidePanelState extends State<SidePanel> {
   Future<void> _displayProjectCreationDialog() async {
     _textFieldController.text = '';
     return showDialog(
-        context: context,
+        context: materialAppGlobalKey.currentContext!,
         builder: (context) {
           return AlertDialog(
             title: Text('Project Name'),
@@ -149,7 +177,7 @@ class _SidePanelState extends State<SidePanel> {
   Future<void> _displayProjectEditDialog(String name) async {
     _textFieldController.text = name;
     return showDialog(
-        context: context,
+        context: materialAppGlobalKey.currentContext!,
         builder: (context) {
           return AlertDialog(
             title: Text('Project Name'),
@@ -186,6 +214,39 @@ class _SidePanelState extends State<SidePanel> {
                 },
               ),
             ],
+          );
+        });
+  }
+
+  Future<void> _displayDeviceSelectDialog(BuildContext context) async {
+    List<String> devices = await getDevices();
+    context.read(currentDeviceProvider).state = '';
+
+    return showDialog(
+        context: materialAppGlobalKey.currentContext!,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Select a device'),
+            content: devices.isEmpty
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Text('No devices found')])
+                : SizedBox(
+                    width: 300,
+                    height: 100,
+                    child: ListView.builder(
+                        itemCount: devices.length,
+                        itemBuilder: (_, i) {
+                          return TextButton(
+                            onPressed: () {
+                              context.read(currentDeviceProvider).state =
+                                  devices[i];
+                              Navigator.pop(context);
+                            },
+                            child: Text(devices[i]),
+                          );
+                        }),
+                  ),
           );
         });
   }

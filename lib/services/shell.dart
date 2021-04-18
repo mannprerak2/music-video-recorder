@@ -30,6 +30,19 @@ Future<void> initWorkingShell() async {
   await rootShell.run('adb start-server');
 }
 
+Future<List<String>> getDevices() async {
+  final r = (await shell.run('adb devices'))[0].stdout as String;
+  final lines = r.split('\n');
+  List<String> devices = [];
+  for (var i = 1; i < lines.length; i++) {
+    List<String> deviceEntry = lines[i].split(RegExp(r'\s+'));
+    if (deviceEntry.length > 1 && deviceEntry[1] == 'device') {
+      devices.add(deviceEntry[0]);
+    }
+  }
+  return devices;
+}
+
 class ProjectShell {
   final shell.Shell mshell;
   final Directory _dir;
@@ -40,19 +53,6 @@ class ProjectShell {
       : mshell = rootShell.clone(
             workingDirectory: p.join(mainDirectory.absolute.path, projectName)),
         _dir = Directory(p.join(mainDirectory.absolute.path, projectName));
-
-  Future<List<String>> getDevices() async {
-    final r = (await mshell.run('adb devices'))[0].stdout as String;
-    final lines = r.split('\n');
-    List<String> devices = [];
-    for (var i = 1; i < lines.length; i++) {
-      List<String> deviceEntry = lines[i].split(RegExp(r'\s+'));
-      if (deviceEntry.length > 1 && deviceEntry[1] == 'device') {
-        devices.add(deviceEntry[0]);
-      }
-    }
-    return devices;
-  }
 
   bool _isValidProjectFile(String path) {
     const exts = {'.mp3', '.mp4'};

@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pkmnrec_app/services/shell.dart';
+
+final materialAppGlobalKey = GlobalKey<NavigatorState>();
 
 final currentProjectProvider = StateProvider((ref) => '');
 final projectShellProvider = StateProvider<ProjectShell>((ref) {
