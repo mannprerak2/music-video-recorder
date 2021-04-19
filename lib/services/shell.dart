@@ -26,12 +26,13 @@ Future<void> initWorkingShell() async {
     await mainDirectory.create();
   }
 
-  rootShell = rootShell.clone(workingDirectory: mainDirectory.absolute.path);
+  rootShell = shell.Shell(
+      workingDirectory: mainDirectory.absolute.path, environment: myEnv);
   await rootShell.run('adb start-server');
 }
 
 Future<List<String>> getDevices() async {
-  final r = (await shell.run('adb devices'))[0].stdout as String;
+  final r = (await rootShell.run('adb devices'))[0].stdout as String;
   final lines = r.split('\n');
   List<String> devices = [];
   for (var i = 1; i < lines.length; i++) {
@@ -46,12 +47,13 @@ Future<List<String>> getDevices() async {
 class ProjectShell {
   final shell.Shell mshell;
   final Directory _dir;
-  String lastError = '';
+  Object? lastError;
 
-  ProjectShell(this.mshell) : _dir = Directory.current;
+  ProjectShell.fromShell(this.mshell) : _dir = Directory.current;
   ProjectShell.fromName(String projectName)
-      : mshell = rootShell.clone(
-            workingDirectory: p.join(mainDirectory.absolute.path, projectName)),
+      : mshell = shell.Shell(
+            workingDirectory: p.join(mainDirectory.absolute.path, projectName),
+            environment: myEnv),
         _dir = Directory(p.join(mainDirectory.absolute.path, projectName));
 
   bool _isValidProjectFile(String path) {
@@ -83,7 +85,7 @@ class ProjectShell {
               .exitCode ==
           0;
     } catch (e) {
-      lastError = (e as shell.ShellException).message;
+      lastError = e;
       return false;
     }
   }
@@ -96,11 +98,11 @@ class ProjectShell {
     try {
       // Toggle Cam
       curProcess = await Process.start('rec', ['audio.mp3'],
-          workingDirectory: mshell.path);
+          workingDirectory: mshell.path, environment: myEnv);
       await _toggleCam(device);
       print('started rec');
     } catch (e) {
-      lastError = (e as shell.ShellException).message;
+      lastError = e;
       return false;
     }
     return true;

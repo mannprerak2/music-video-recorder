@@ -18,9 +18,12 @@ class ProjectCreator extends ConsumerWidget {
               if (await _shell.startCamera(device)) {
                 context.read(recorderStateProvider).state = RecorderState.ready;
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content:
-                        Text('Unable to start camera: ${_shell.lastError}')));
+                return showDialog(
+                    context: materialAppGlobalKey.currentContext!,
+                    builder: (_) => AlertDialog(
+                          content: Text(
+                              'Unable to start camera: ${_shell.lastError}'),
+                        ));
               }
             },
             style: ElevatedButton.styleFrom(
@@ -48,9 +51,12 @@ class ProjectCreator extends ConsumerWidget {
                       context.read(recorderStateProvider).state =
                           RecorderState.recording;
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(
-                              'Unable to start recording: ${_shell.lastError}')));
+                      return showDialog(
+                          context: materialAppGlobalKey.currentContext!,
+                          builder: (_) => AlertDialog(
+                                content: Text(
+                                    'Unable to start recording: ${_shell.lastError}'),
+                              ));
                     }
                   },
                   style: ElevatedButton.styleFrom(

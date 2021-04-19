@@ -219,7 +219,16 @@ class _SidePanelState extends State<SidePanel> {
   }
 
   Future<void> _displayDeviceSelectDialog(BuildContext context) async {
-    List<String> devices = await getDevices();
+    List<String> devices = [];
+    try {
+      devices = await getDevices();
+    } catch (e) {
+      return showDialog(
+          context: materialAppGlobalKey.currentContext!,
+          builder: (_) => AlertDialog(
+                content: Text(e.toString()),
+              ));
+    }
     context.read(currentDeviceProvider).state = '';
 
     return showDialog(
