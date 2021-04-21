@@ -1,4 +1,4 @@
-# Android 11 video capture intent test
 set -e
 
-adb -d -v shell "am start -a android.media.action.IMAGE_CAPTURE" -W
+name=$(adb -d shell ls "/storage/emulated/0/DCIM/Camera/VID*" | tail -1)
+adb -d pull $name camvideo.mp4

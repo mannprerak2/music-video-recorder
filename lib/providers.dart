@@ -14,3 +14,5 @@ final currentDeviceProvider = StateProvider((ref) => '');
 
 enum RecorderState { none, ready, recording, processing }
 final recorderStateProvider = StateProvider((ref) => RecorderState.none);
+
+final processingStateProvider = StateProvider((ref) => '');

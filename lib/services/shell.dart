@@ -2,7 +2,7 @@ import 'package:process_run/shell.dart' as shell;
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
-const deps = ['rec', 'adb', 'ffmpeg'];
+const deps = ['rec', 'adb', 'ffmpeg', 'ffprobe'];
 
 const myEnv = {'PATH': '/usr/local/bin'};
 shell.Shell rootShell = shell.Shell(environment: myEnv);
@@ -97,9 +97,9 @@ class ProjectShell {
   Future<bool> startRecording(String device) async {
     try {
       // Toggle Cam
+      await _toggleCam(device);
       curProcess = await Process.start('rec', ['audio.mp3'],
           workingDirectory: mshell.path, environment: myEnv);
-      await _toggleCam(device);
       print('started rec');
     } catch (e) {
       lastError = e;
@@ -111,8 +111,69 @@ class ProjectShell {
   Process? curProcess;
 
   Future<bool> stopRecording(String device) async {
-    await _toggleCam(device);
-    Process p = curProcess!;
-    return p.kill(ProcessSignal.sigterm);
+    try {
+      Process p = curProcess!;
+      p.kill(ProcessSignal.sigterm);
+      await _toggleCam(device);
+      return true;
+    } catch (e) {
+      lastError = e;
+      return false;
+    }
+  }
+
+  Future<bool> pullVideoFromDevice(String device) async {
+    // Wait for phone to stop recording completely.
+    await Future.delayed(Duration(seconds: 2));
+    try {
+      String videoName = (await mshell.run(
+              'adb -s $device shell ls "/storage/emulated/0/DCIM/Camera/VID*" | tail -1'))[0]
+          .outText;
+      if (videoName.isEmpty) {
+        print('Empty pull video.');
+        return false;
+      }
+      String storeVidName = 'camVideo.mp4';
+      await mshell.run('adb -s $device pull $videoName $storeVidName');
+
+      return await File(p.join(_dir.path, storeVidName)).exists();
+    } catch (e) {
+      lastError = e;
+      return false;
+    }
+  }
+
+  Future<bool> mergeAudioVideo() async {
+    try {
+      await mshell.run(
+          'ffmpeg -loglevel warning -i camvideo.mp4 -vcodec copy -an camnoaudio.mp4');
+
+      double videoDurSec = double.parse((await mshell.run(
+              'ffprobe -i camnoaudio.mp4 -show_entries format=duration -v quiet -of csv="p=0"'))[0]
+          .outText);
+      double audioDurSec = double.parse((await mshell.run(
+              'ffprobe -i audio.mp3 -show_entries format=duration -v quiet -of csv="p=0"'))[0]
+          .outText);
+      if (audioDurSec > videoDurSec) {
+        throw Exception('Unable to merge, Audio is larger than video.');
+      }
+
+      // Trim camnoaudio.mp4 to length of audio.
+      await mshell.run(
+          'ffmpeg -loglevel warning -i camnoaudio.mp4 -t $audioDurSec -c copy camnoaudiotrimmed.mp4');
+
+      // Merge
+      await mshell.run(
+          'ffmpeg -loglevel warning -i audio.mp3 -i camnoaudiotrimmed.mp4 -c:v copy -c:a aac final.mp4');
+
+      // Delete camnoaudio.mp4 and camnoaudiotrimmed
+      await File(p.join(_dir.path, 'camnoaudio.mp4')).delete();
+      await File(p.join(_dir.path, 'camnoaudiotrimmed.mp4')).delete();
+
+      return true;
+    } catch (e) {
+      lastError = e;
+      return false;
+    }
   }
 }
