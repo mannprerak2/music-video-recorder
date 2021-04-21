@@ -23,10 +23,8 @@ class ProjectCreator extends ConsumerWidget {
     }
 
     // Reset to show completed project screen.
-    String curProj = context.read(currentProjectProvider).state;
-    context.read(currentProjectProvider).state = '';
-    context.read(currentProjectProvider).state = curProj;
-
+    context.read(currentProjectLoaderState).state = ProjectLoaderState.none;
+    context.read(recorderStateProvider).state = RecorderState.none;
     return true;
   }
 
@@ -129,7 +127,9 @@ class ProjectCreator extends ConsumerWidget {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                      shape: CircleBorder(), minimumSize: Size(150, 150)),
+                      primary: Colors.red[700],
+                      shape: CircleBorder(),
+                      minimumSize: Size(150, 150)),
                   child: Text(
                     'Stop',
                     style: TextStyle(

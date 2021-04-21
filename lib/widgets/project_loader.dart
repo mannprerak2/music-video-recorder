@@ -7,8 +7,6 @@ import 'package:pkmnrec_app/services/shell.dart';
 import 'package:path/path.dart' as p;
 import 'package:pkmnrec_app/widgets/project_creator.dart';
 
-enum ProjectLoaderState { none, loading, empty, complete }
-
 class ProjectLoader extends StatefulWidget {
   ProjectLoader();
 
@@ -17,40 +15,30 @@ class ProjectLoader extends StatefulWidget {
 }
 
 class _ProjectLoaderState extends State<ProjectLoader> {
-  var state = ProjectLoaderState.loading;
-  var lastProjectName = '';
-
   var projectFiles = <FileSystemEntity>[];
 
   void loadProject(ProjectShell projectShell) async {
-    state = ProjectLoaderState.loading;
+    await Future.value(1); // Prevents error called setstate in build.
+    context.read(currentProjectLoaderState).state = ProjectLoaderState.loading;
 
     projectFiles = await projectShell.getProjectFiles();
     if (projectFiles.isEmpty) {
-      setState(() {
-        state = ProjectLoaderState.empty;
-      });
+      context.read(currentProjectLoaderState).state = ProjectLoaderState.empty;
     } else {
-      setState(() {
-        state = ProjectLoaderState.complete;
-      });
+      context.read(currentProjectLoaderState).state =
+          ProjectLoaderState.complete;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (_, watch, __) {
-      final projectName = watch(currentProjectProvider).state;
       final projectShell = watch(projectShellProvider).state;
-
-      if (projectName != lastProjectName) {
-        // Project was changed, restart.
-        loadProject(projectShell);
-        lastProjectName = projectName;
-      }
+      final state = watch(currentProjectLoaderState).state;
 
       switch (state) {
         case ProjectLoaderState.none:
+          loadProject(projectShell);
           return Container();
         case ProjectLoaderState.loading:
           return Center(child: CircularProgressIndicator());
