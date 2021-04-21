@@ -1,0 +1,114 @@
+#!/bin/bash
+
+set -e
+
+startCam(){
+adb shell "am start -a android.media.action.VIDEO_CAPTURE"
+}
+
+toggleCam(){
+#27 = KEYCODE_VOLUME_DOWN
+adb shell "input keyevent 25"
+}
+
+endRec(){
+toggleCam
+
+echo "Please Wait.."
+#66 = KEYCODE_ENTER
+#adb shell "input keyevent 66"
+echo "Recording Complete"
+}
+
+trimVideo(){
+
+videodur=$(ffprobe -i camnoaudiotrimmed.mp4 -show_entries format=duration -v quiet -of csv="p=0")
+audiodur=$(ffprobe -i audio.mp3 -show_entries format=duration -v quiet -of csv="p=0")
+
+diffe=$(echo "($audiodur-$videodur)" | bc -l | sed 's/^\./0./')
+echo "#########################################################"
+echo $diffe
+
+ffmpeg -loglevel warning -i audio.mp3 -ss $diffe -c copy audiotrimmed.mp3
+
+audiodur=$(ffprobe -i audiotrimmed.mp3 -show_entries format=duration -v quiet -of csv="p=0")
+diffe=$(echo "$videodur-$audiodur" | bc)
+
+echo "#########################################################"
+echo "video len $videodur"
+echo "audio len $audiodur"
+echo "difference $diffe"
+echo "#########################################################"
+ffmpeg -loglevel warning -i camnoaudiotrimmed.mp4 -ss 0 -c copy videotrimed.mp4
+}
+
+merge(){
+echo "merging"
+ffmpeg -loglevel warning -i videotrimed.mp4 -i audiotrimmed.mp3 -c copy final.mp4
+}
+###########################################
+
+#open camera app in android, initialise audio tool
+startCam
+
+#tell user to adjust camera or switch camera facing
+echo "Setup ur camera and microphone position"
+
+echo "Press <Enter> to start recording session (stop by pressing <Enter> Again)"
+#wait for user to press enter
+read
+
+#startCamera
+toggleCam
+
+rec audio.mp3 &
+
+pid=$!
+#wait for user to press enter to stop recording
+read
+kill "$pid"
+# code below this executes after user presses <Enter> on keyboard
+startTime=$(($(date +%s%N)/1000000))
+endRec
+endTime=$(($(date +%s%N)/1000000))
+diff=$(echo "($endTime-$startTime)" | bc -l | sed 's/^\./0./')
+echo endToStartmillisec $diff
+#copy video from phone to pc
+sleep 2 # to ensure video has stopped
+name=$(adb shell ls "/storage/emulated/0/DCIM/Camera/VID*" | tail -1)
+adb pull $name camvideo.mp4
+
+#remove audio from video
+ffmpeg -loglevel warning -i camvideo.mp4 -vcodec copy -an camnoaudio.mp4
+
+videodur=$(ffprobe -i camnoaudio.mp4 -show_entries format=duration -v quiet -of csv="p=0")
+echo originalVidDuration $videodur
+videodurmillisec=$(echo "scale=0; $videodur*1000/1" | bc)
+vidDurationToKeep=$(echo "scale=3; ($videodurmillisec-$diff)/1000 + 0.2" | bc)
+echo vidDurationToKeep $vidDurationToKeep
+# delete video at end of duration endTime-startTime
+ffmpeg -loglevel warning -i camnoaudio.mp4 -t 0$vidDurationToKeep -c copy camnoaudiotrimmed.mp4
+
+#processing
+trimVideo
+
+#create project
+merge
+rm camnoaudio.mp4 videotrimed.mp4 audiotrimmed.mp3 camnoaudiotrimmed.mp4
+echo "Created Project.mp4 :)"
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
