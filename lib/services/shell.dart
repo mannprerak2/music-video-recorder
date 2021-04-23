@@ -101,6 +101,10 @@ class ProjectShell {
       curProcess = await Process.start('rec', ['audio.mp3'],
           workingDirectory: mshell.path, environment: myEnv);
       print('started rec');
+      // We need to listen to streams or recording stops when streams are
+      // filled which happens at around 1min, 55sec.
+      curProcess?.stdout.listen((value) {});
+      curProcess?.stderr.listen((value) {});
     } catch (e) {
       lastError = e;
       return false;
