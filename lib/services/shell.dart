@@ -48,6 +48,7 @@ class ProjectShell {
   final shell.Shell mshell;
   final Directory _dir;
   Object? lastError;
+  String? lastVideo;
 
   ProjectShell.fromShell(this.mshell) : _dir = Directory.current;
   ProjectShell.fromName(String projectName)
@@ -126,6 +127,20 @@ class ProjectShell {
     }
   }
 
+  Future<bool> deleteVideoFromDevice(String device) async {
+    try {
+      if (lastVideo == null) {
+        throw Exception('No last video.');
+      }
+      await mshell.run('adb -s $device shell rm "$lastVideo"');
+      lastVideo = null;
+      return true;
+    } catch (e) {
+      lastError = e;
+      return false;
+    }
+  }
+
   Future<bool> pullVideoFromDevice(String device) async {
     // Wait for phone to stop recording completely.
     await Future.delayed(Duration(seconds: 2));
@@ -137,6 +152,7 @@ class ProjectShell {
         print('Empty pull video.');
         return false;
       }
+      lastVideo = videoName;
       String storeVidName = 'camVideo.mp4';
       await mshell.run('adb -s $device pull $videoName $storeVidName');
 

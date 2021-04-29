@@ -20,7 +20,7 @@ class _SidePanelState extends State<SidePanel> {
 
   List<String> projects = [];
 
-  void _loadProjects() async {
+  Future<void> _loadProjects() async {
     setState(() {
       state = SidePanelState.loading;
     });
@@ -138,13 +138,30 @@ class _SidePanelState extends State<SidePanel> {
 
   Future<void> _displayProjectCreationDialog() async {
     _textFieldController.text = '';
+    void createProject() async {
+      final d = Directory(
+          p.join(mainDirectory.absolute.path, _textFieldController.text));
+      if (await d.exists()) {
+        _textFieldController.text += '(2)';
+      } else {
+        await d.create();
+        await _loadProjects();
+        context.read(currentProjectProvider).state = _textFieldController.text;
+        materialAppGlobalKey.currentState?.pop();
+      }
+    }
+
     return showDialog(
         context: materialAppGlobalKey.currentContext!,
         builder: (context) {
           return AlertDialog(
             title: Text('Project Name'),
             content: TextField(
+              autofocus: true,
               controller: _textFieldController,
+              onSubmitted: (val) {
+                createProject();
+              },
             ),
             actions: <Widget>[
               TextButton(
@@ -157,17 +174,7 @@ class _SidePanelState extends State<SidePanel> {
               ),
               TextButton(
                 child: Text('OK'),
-                onPressed: () async {
-                  final d = Directory(p.join(
-                      mainDirectory.absolute.path, _textFieldController.text));
-                  if (await d.exists()) {
-                    _textFieldController.text += '(2)';
-                  } else {
-                    await d.create();
-                    _loadProjects();
-                    Navigator.of(context).pop();
-                  }
-                },
+                onPressed: createProject,
               ),
             ],
           );
@@ -182,6 +189,7 @@ class _SidePanelState extends State<SidePanel> {
           return AlertDialog(
             title: Text('Project Name'),
             content: TextField(
+              autofocus: true,
               controller: _textFieldController,
             ),
             actions: <Widget>[
